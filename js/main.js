@@ -1,148 +1,85 @@
-import ToDoListServices from "./ToDoListServices.js";
-const toDoSV = new ToDoListServices()
-import ToDoList from "./ToDoList.js";
-let newArr = []
-console.log(newArr)
+import ToDo from './ToDo.js'
+import ToDoList from './ToDoList.js';
 
-const getList = () => { 
-    toDoSV.getList().then((result) => { 
-        renderList(result.data)
-     })
- }
+let todolist = new ToDoList()
 
- getList()
+const sortAZ = () => {
+  todolist.toDoArray.sort((a, b) => {
+    const nameA = a.content.toUpperCase();
+    const nameB = b.content.toUpperCase();
+    if (nameA < nameB) {
+      return -1;
+    }
+    if (nameA > nameB) {
+      return 1;
+    }
 
- window.getList = getList
-
- const sortAZ = () => { 
-    toDoSV.getList().then((result) => { 
-        result.data.sort((a, b) => {
-            const nameA = a.name.toUpperCase();
-            const nameB = b.name.toUpperCase();
-            if (nameA < nameB) {
-              return -1;
-            }
-            if (nameA > nameB) {
-              return 1;
-            }
-          
-            return 0;
-          });
-          renderList(result.data)
-     })
-  }
-
-  window.sortAZ = sortAZ
-
-  const sortZA = () => { 
-    toDoSV.getList().then((result) => { 
-        result.data.sort((a, b) => {
-            const nameA = a.name.toUpperCase();
-            const nameB = b.name.toUpperCase();
-            if (nameA < nameB) {
-              return 1;
-            }
-            if (nameA > nameB) {
-              return -1;
-            }
-          
-            return 0;
-          });
-          renderList(result.data)
-     })
-  }
-
-  window.sortZA = sortZA
-
- const renderList = (mang) => { 
-    const newArr = mang.map((item) => { 
-        let {name, id} = item
-        return `<li id="doneNote-${id}">${name}
-        <div><i class="fa-sharp fa-solid fa-trash" onclick="deleteNote(${id})"></i >
-        <i class="fa-regular fa-circle-check" onclick="checkedNote('${id}','${name}')"></i>
-        </div>
-       </li>
-        `        
-     })
-
-     document.querySelector('#todo').innerHTML = newArr.join('')
+    return 0;
+  });
+  todolist.renderToDo()
 }
-window.renderList = renderList
 
-const setLocal = () => {
-    localStorage.setItem('noteDone', JSON.stringify(newArr))
-  }
+window.sortAZ = sortAZ
 
-  window.setLocal = setLocal
-  
+const sortZA = () => {
+  todolist.toDoArray.sort((a, b) => {
+    const nameA = a.content.toUpperCase();
+    const nameB = b.content.toUpperCase();
+    if (nameA < nameB) {
+      return 1;
+    }
+    if (nameA > nameB) {
+      return -1;
+    }
 
-let deleteNote = (id) => { 
-    toDoSV.deleteNoteMain(id).then((result) => { 
-        getList(result.data.id)
-     })
- }
+    // names must be equal
+    return 0;
+  });
+  todolist.renderToDo()
+}
+window.sortZA = sortZA
 
-window.deleteNote = deleteNote
-
-const checkedNote = (id,name) => { 
-   deleteNote(id)
-   newArr = [...newArr,name]
-   console.log(newArr)
-   setLocal()
-   getLocal()
- }
- window.checkedNote = checkedNote
-
-
- const renderNoteDone = () => {   
-    let val = ''     
-    for(const index in newArr){
-        val += `<li>${newArr[index]} 
-        <div><i class="fa-sharp fa-solid fa-trash" onclick="deleteArr(${index})"></i >
-        <i class="fa-solid fa-circle-check" style="color:green"></i>
-        </div>
-       </li>`
-   }
-   document.querySelector('#completed').innerHTML = val
- }
- 
-  window.renderNoteDone = renderNoteDone
-
-  const deleteArr = (id) => { 
-    newArr.splice(id,1)
-    setLocal()
-    getLocal()
-   }
-
-   window.deleteArr = deleteArr
-
-  const getLocal = () => {
-    if (localStorage.getItem('noteDone') != null) {
-        newArr = JSON.parse(localStorage.getItem('noteDone'))
-        renderNoteDone()
+const addNote = () => {
+  let content = document.querySelector('#newTask').value;
+  let id = 0
+  for (const value of todolist.toDoArray) {
+    if (id == value.id) {
+      id++
     }
   }
-  window.getLocal = getLocal
-  getLocal()
-
-  const addNote =  () => { 
-    let valNote = document.querySelector('#newTask').value;
-    let todolist = new ToDoList(valNote)
-    toDoSV.addNote(todolist).then((result) => { 
-        getList(result.data)
-     })
+  let todo = new ToDo(id, content, 0)
+  todolist.addToDo(todo)
+  todolist.renderToDo()
+  console.log(todolist.toDoArray)
 }
 
-    
-window.addNote = addNote
+window.addNote = addNote;
 
+const removeToDo = (id) => {
+  todolist.toDoArray.splice(id, 1)
+  console.log(todolist.toDoArray)
+  todolist.renderToDo()
+  todolist.updateToDoMain()
+}
+window.removeToDo = removeToDo
 
-const getDate = () => { 
-    const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    const d = new Date();
-    d.getFullYear();
-    document.querySelector('.card__title p').innerHTML = `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
- }
- window.getDate = getDate
+const updateToDo = (idArr) => {
+  let { id, content, status } = todolist.toDoArray[idArr]
+  let todo = new ToDo(id, content, 1)
+  todolist.toDoArray[idArr] = todo
+  todolist.updateToDoMain()
+  todolist.renderToDo()
+  console.log(idArr)
+}
 
- getDate()
+window.updateToDo = updateToDo
+
+const getDate = () => {
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const d = new Date();
+  d.getFullYear();
+  document.querySelector('.card__title p').innerHTML = `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
+}
+window.getDate = getDate
+
+getDate()
